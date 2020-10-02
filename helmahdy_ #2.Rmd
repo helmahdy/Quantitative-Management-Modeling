@@ -1,0 +1,71 @@
+---
+title: "QMM- 2"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(lpSolveAPI)
+lprec <- make.lp(0, 9)
+set.objfn(lprec, c(420,420,420,360,360,360,300,300,300))   #create the objective function
+lp.control(lprec,sense='max')   #Change to  maximization
+
+```
+
+```{r}
+# 
+add.constraint(lprec, c( 1, 1, 1, 0, 0, 0, 0, 0, 0), "<=", 900)   #Sales Forecast Constrain
+add.constraint(lprec, c(0, 0, 0, 1, 1, 1, 0, 0, 0), "<=", 1200) 
+add.constraint(lprec, c(0, 0, 0, 0, 0, 0, 1, 1, 1), "<=", 750)
+
+add.constraint(lprec, c(20, 0, 0, 15, 0, 0, 12, 0, 0), "<=", 13000)  #Plants capacity Constraints
+add.constraint(lprec, c(0, 20, 0, 0, 15, 0, 0, 12, 0), "<=", 12000)
+add.constraint(lprec, c(0, 0, 20, 0, 0, 15, 0, 0, 12), "<=", 5000)
+
+#Plants Excess capacity constraints
+add.constraint(lprec, c(900, 0, 0, 900, 0, 0, 900, 0, 0) - c(0, 750, 0, 0, 750, 0, 0, 750, 0), "=", 0)
+add.constraint(lprec, c(450, 0, 0, 450, 0, 0, 450, 0, 0) - c(0, 0, 750, 0, 0, 750, 0, 0, 750), "=", 0)
+
+add.constraint(lprec, c(1, 0, 0, 1, 0, 0, 1, 0, 0), "<=", 750) #Production Capacity Constraints
+add.constraint(lprec, c(0, 1, 0, 0, 1, 0, 0, 1, 0), "<=", 900)
+add.constraint(lprec, c(0, 0, 1, 0, 0, 1, 0, 0, 1), "<=", 450)
+
+```
+
+```{r}
+RowNames <- c("Sales L","Sales M","Sales S","storage p1","storage p2","storage p3","Excess capacity1","Excess capacity2","Production CAP1","P.CAP2","P.CAP3")
+ColNames <- c("L1", "L2", "L3","M1","M2","M3","S1","S2","S3")
+dimnames(lprec) <- list(RowNames, ColNames)
+
+```
+
+
+```{r}
+#The optimal solution is to produce   516.6667  of size Large in Plant  1 and 0 in Plant 2
+#and 177.7778 of Size M in Plant 1 and  666.6667   in Plant 2 and 0 in plant 3
+#and 0of  size S in Plant 1 and  166.6667 in Plant 2 and 416.6667 in plant 3 to reach max profit of 696000
+
+lprec
+solve(lprec)
+get.objective(lprec)
+get.variables(lprec)
+
+write.lp(lprec, filename = "Weigelt.lp", type =  "lp")
+
+
+```
+
+
+
+
+
+
+
+
+
+
