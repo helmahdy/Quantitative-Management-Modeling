@@ -1,0 +1,50 @@
+---
+title: 'QMM -Assignemnt #3'
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+Heart is trying to minimize costs which includes shipping and production costs in both plant A and plant B. However, its supply is more than the demand and hence we need to creat a dummy destination, a warehouse in this case  to absorb the 10 units demand difference to reach the feasible solution. 
+
+Objective function : Min(622 x11 + 614 x12 + 630 x13 + 641 x21 + x645 x22 + 649 x23)
+
+Variables: x11 = number of AEDs produced and shipped from plant A to warehouse 1
+x12=  number of AEDs produced and shipped from plant A to warehouse 2
+x13=  number of AEDs produced and shipped from plant A to warehouse 3
+x14= number of AEDs produced and shipped from plant A to dummy warehouse 4
+x21=  number of AEDs produced and shipped from plant B to warehouse 1
+x22 = number of AEDs produced and shipped from plant B to warehouse 2
+x23=  number of AEDs produced and shipped from plant B to warehouse 3
+x24=  number of AEDs produced and shipped from plant B to dummy warehouse 4
+
+
+```{r}
+library(lpSolveAPI)
+x <- read.lp("Heart.lp")
+x
+
+```
+
+
+Constraints:
+Plant A capacity constraint:  x11 + x12 +x13 +x14 =100,
+Plant B capacity constraint:  x21 +x22 +x23 +x24= 120,
+Warehouse 1 Demand constraint:  x11+ x21 =80,
+Warehouse 2 Demand Constraint:  x12 + x22 = 60,
+Warehouse 3 Demand constraint:  x13 + x23 = 70,
+Warehouse 4 Demand constraint: x14 + x24 =10
+
+```{r}
+solve(x)
+
+get.objective(x)   #Total costs of shipping and production = $132790
+
+get.variables(x)   #x11= 0, x12=60, x13=40 , x21= 80, x22= 0, x23= 30, x14, 0, x24 =10, total AEDs to be produced in Plant A= 100, and 110 in Plant B
+
+
+```
+
+
+
