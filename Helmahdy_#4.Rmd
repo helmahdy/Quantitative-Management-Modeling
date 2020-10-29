@@ -1,0 +1,106 @@
+---
+title: "QMM -#4"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+Formulating the problem as lp to get the weight for  Facility 1
+```{r}
+library(Benchmarking)
+library(lpSolveAPI)
+
+Facility1 <- read.lp("Health.lp")
+solve(Facility1)
+get.objective(Facility1)     #the lp was able to achieve the max efficiency for Facility 1
+
+get.variables(Facility1)    #The proposed inputs and outputs weights for maximum efficiency 
+
+```
+
+First we type our inputs and outputs as vectors . we have 2 inputs  (Staff hours, Supplies) and 2 outputs ("Reimbursed Patient_Days","Privately Paid Patient_Day) .
+```{r}
+x <- matrix(c(150, 400, 320, 520, 350, 320, 0.2, 0.7, 1.2, 2.0, 1.2, 0.7), ncol = 2)
+y <- matrix(c(14000,14000,42000,28000,19000,14000,3500,21000,10500,42000,25000,15000),ncol = 2)
+colnames(y) <- c("Reimbursed Patient_Days","Privately Paid Patient_Days")
+colnames(x) <- c("Staff_Hours", "Supplies")
+
+print(x)
+print(y)
+
+Table<- cbind(x,y)
+row.names(Table) =  c("Fac1", "Fac2", "Fac3", "Fac4", "Fac5", "Fac6")
+Table
+
+```
+
+
+Next we run DEA Analysis under all DEA assumptions (FDH, CRS, VRS, IRS, DRS, and FRH)
+```{r}
+
+#Constant returns to scale, convexity and free disposability
+CRS <- dea(x,y, RTS = "crs") # provide the input and output . The results show that Facilities 1,2,3,4 are efficient whereas facilities 5,6 have efficiency rates of 98% and 87% respectively. 
+print(CRS)
+peers(CRS)    # identify the peers. The peers units for for facilities 5,6 are 1,2,4 
+CRS_Weights <- lambda(CRS)    # identify the relative weights given to the peers. The weights for facility 4 are 0.20, 0.08, 0.54. The weights for facility 6 are 0.34, 0.39, 0.13
+
+#Free disposability hull
+FDH <- dea(x,y, RTS= "fdh")
+FDH  #all facilities are efficient 
+peers(FDH)  #the peer for each facility is itself
+FDH_Weights <- lambda(FDH)
+
+#Variable returns to scale, convexity and free disposability
+VRS <- dea(x,y, RTS = "vrs")
+VRS    #All facilities are efficient except for facility 6
+peers(VRS)   #peers for facility 6 are 1,2,5
+VRS_Weights <- lambda(VRS)
+
+#Increasing returns to scale, (up-scaling, but not down-scaling), convexity and free disposability
+IRS <- dea(x,y, RTS= "irs")
+IRS    #All facilities are efficient except for facilit
+peers(IRS)    #peers for facility 6 are 1,2,5
+IRS_Weights <- lambda(IRS)
+
+#Decreasing returns to scale, convexity, down-scaling and free disposability
+DRS <- dea(x,y, RTS= "drs")  #DRS gave same results as CRS
+DRS     #All facilities are efficient except for facility 5,6
+peers(DRS)  # The peers units for for facilities 5,6 are 1,2,4
+DRS_Weights <- lambda(DRS)
+  
+
+
+FRH <- dea(x,y, RTS= "add")
+FRH  #all facilities are efficient
+peers(FRH)    #the peer unit for each facility is itself
+FRH_Weights <- lambda(FRH)
+
+```
+
+
+```{r}
+
+as.data.frame(Table)
+
+Df <-data.frame (CRS = c(1.0000, 1.0000, 1.0000, 1.0000, 0.9775, 0.8675),
+FDH= c(1,1,1,1,1,1), VRS= c(1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 0.8963),IRS =c( 1.0000, 1.0000, 1.0000, 1.0000, 1.0000 ,0.8963), DRS= c(1.0000 ,1.0000 ,1.0000, 1.0000, 0.9775, 0.8675), FRH= c(1,1,1,1,1,1))
+Df
+
+#Now we look at the efficiency results at each facility in every DEA assumption. CRS and DRS give same results, FDH and FRH gave same results, and finally both VRS and IRS gave same results as well.
+Results <- cbind(Table,Df)
+Results[,-c(1:4)]
+
+
+#Summary of the weights assigned to each Facility in every DEA assumption
+Weights_tbl <- cbind(FDH_Weights, CRS_Weights, VRS_Weights, IRS_Weights, DRS_Weights, FRH_Weights)
+row.names(Weights_tbl) =   c("Fac1", "Fac2", "Fac3", "Fac4", "Fac5", "Fac6")
+
+colnames(Weights_tbl) <- c("FDH","FDH", "FDH", "FDH","FDH","FDH", "CRS", "CRS", "CRS", "CRS", "VRS", "VRS", "VRS","VRS", "VRS", "IRS", "IRS", "IRS", "IRS","IRS", "DRS", "DRS", "DRS", "DRS", "FRH", "FRH", "FRH", "FRH", "FRH","FRH") 
+as.data.frame(Weights_tbl)   #the table summerieses  the weights for inputs and outputs for  each facility under each DEA assumption
+
+###DEA Analysis Summary for Hope Vally Health Care Association: Under FDH and FRH all facilities are efficient, under CRS and DRS all facilities were efficient except for Facility 5,6. Under VRS and IRS assumptions all except for facility 6 were efficient.  The peer units for efficient facilities are themselves. Under VRS and IRS assumption the peers unit for inefficient facilities were 1,2 and 5. Under CRS and DRS, the peers unites were 1,2,and 4. 
+
+
+```
+
