@@ -1,0 +1,69 @@
+---
+title: "QMM- 5"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Emax Corporation Problem:
+
+Maximize Z = P - 6C - 3D, where
+P = total (discounted) profit over the life of the new products,
+C = change (in either direction) in the current level of employment,
+D = decrease (if any) in next year’s earnings from the current year’s level.
+
+P= 20 x1 + 15 x2 + 25 x3
+y1= 6 x1 + 4 x2 + 5 x3 - 50
+y2= 8 x1 + 7 x2 +5 x3 - 75
+
+y1+ is going over the employment level goal and the weighted penality is 6
+y1- is going under the employment level goal and the weighted penality is 6
+y2+ is going over the earnings goal for next year- no penality
+y2- is going under the earnings goal for next year and the peanlity is 3.
+x1 is the quantity of product 1 to be produced
+x2 is the quantity of product 2 to be produced
+x3 is the quantity of product 3 to be produced 
+
+
+LP formulation:
+__________________
+// Objective function
+max: 20x1 + 15x2 + 25x3 - 6 y1p - 6 y1m - 3 y2m;
+
+// Constraints
+6x1 + 4x2 + 5x3 + y1p - y1m = 50;
+8x1 + 7x2 + 5x3 + y2p - y2m = 75;
+
+```{r}
+library(lpSolveAPI)
+Emax_GP <- read.lp("Emax.lp")
+Emax_GP
+
+solve (Emax_GP)
+
+get.objective(Emax_GP)
+
+#Emax need to produce 15 units of product 3 and none of product 1 and  2 to achieve 225 millions in profit. The employment level will go over the goal by 2500
+get.variables(Emax_GP)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
