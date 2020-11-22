@@ -1,1 +1,1 @@
-# Quantitative-Management-Modeling
+# Quantitative-Management-Modeling Class
