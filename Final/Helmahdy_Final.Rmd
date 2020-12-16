@@ -1,0 +1,146 @@
+---
+title: "Quantitive Modeling Management-Final"
+subtitle: |
+ Forming Groups to maximize the chance of success
+output: pdf_document
+header-includes: 
+  - \renewcommand{\and}{\\}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(lpSolveAPI)
+library(readxl)
+library(dplyr)
+```
+
+\newpage 
+\tableofcontents 
+\newpage 
+
+## I. Problem Introduction and Objective
+
+The problem is to form  4 groups of 12 students to maximize the chance of success for each group on a class project in quantitative modeling class.
+
+
+#### Factors
+
+Three factors could affect group success in the project. These factors are:
+1- Student Current GPA
+2- Student's relevant years of work experience. 
+3- Student's course-related skills (such as Math, r programming, office suite proficiency, Probability & stats fundamentals, Analytics, business analysis, Technology , modeling basics   )
+
+These factors were chosen based on historical data analytics of students in this course or similar courses around USA. This analysis showed that the 3 factors mentioned above contributed largely to the student success in these courses. Finally, weights were added to each factor based on the factor contribution to the student success. Course-related skills had the highest weight of 50%, a weight of 30% was assigned to years of experience and finally, 20% weight was assigned to student's GPA. A score  out of 100 was then given to the student based on those 3 factors and their relevant weights.
+
+
+### Data Collection
+The students' data was collected by using different sources. The students' current GPA data was complied from the university database. Factors such as years of relevant work experience and course-related skills were filled by students. The students were asked to fill a survey to gather data about their skills to measure how their skills match the skills needed for the project completion. The years of experience and the skills were then reviewed and rated by the professor using below scale:
+
+** Years of Relevant Work Experience (1-4)
+1 if the student experience ranges from 0-2 years
+2 if the student experience ranges from 2-4 years
+3 if the student experience ranges from 4-6 years
+4 if the student experience is more than 6 years
+
+** Course-Related Skills (1-4)
+There are 8 skills required for the project that were identified by the professor
+1 if the student has 0-2 skills
+2 if the student has 2-5 skills
+3 if the student has 5-7 skills
+4 if the student has all skills needed .
+
+Here is an overview of the student dataset:
+
+```{r}
+Students_data <- read_excel("Students_data.xlsx")
+Students_data
+
+```
+\newpage
+
+
+## II. Problem Formulation
+In this section, we will define, formulate, and solve a mathematical optimization model using interger programming. 
+
+### 1.Decision Variables
+
+The decision variables represent each of the 12 students being assigned to each of the 4 group. 
+xij, where i is the student number and j is the student group number
+
+$$
+x_{11},~x_{12},~x_{13},...,~x_{ij},~~~~~~~~~~~where~i ={1, 2, 3,...12}~and~j = 1, 2,3,4
+$$
+
+
+### 2.Objective Function
+
+The objective function is to maximize each group success.
+let: 
+xij = 1 is the student i belongs to group j, and 0 if not.
+
+$$
+maximize:
+41.25\sum_{j=1}^{4}x_{i1}+ 68.75\sum_{j=1}^{4}x_{i1}+82.5\sum_{j=1}^{4}x_{i1}+94.25\sum_{j=1}^{4}x_{i1}
++66.75\sum_{j=1}^{4}x_{i1}+ 78\sum_{j=1}^{4}x_{i1}+83.5\sum_{j=1}^{4}x_{i1}+70\sum_{j=1}^{4}x_{i1}+53\sum_{j=1}^{4}x_{i1}+56\sum_{j=1}^{4}x_{i1}+78.75\sum_{j=1}^{4}x_{i1}+67.75\sum_{j=1}^{4}x_{i1}
+$$
+
+### 3. Constraints
+
+Three groups of constraints were identified for this problem:
+1- There are only 4 groups, Each group has 3 members ONLY.
+2- Each member can only be part of no more than one group. 
+3- Integer Constraints.
+
+
+## III. R Code
+```{r}
+#Import lp file
+lp <- read.lp("group.lp")
+lp 
+
+#Optimal solution found
+solve(lp)
+
+#get objective function, which is the maximum total score a group can have = 849.5
+get.objective(lp)
+
+#get each student membership 
+Groups <- get.variables(lp)
+Groups
+
+df <- as.data.frame(matrix(Groups, nrow = 12, ncol= 4)) %>%
+ rename(Group1= V1, Group2=V2, Group3=V3, Group4=V4)
+df
+
+Group_number <-  c(4,3,2,1,3,1,1,2,4,4,2,3)
+
+results <- cbind(Students_data , Group_number)
+results 
+
+```
+
+## IV. Model Results
+
+The integer model was able to find the optimal solution to maximize the group success. The project groups should be splitted as follows:
+
+Group 1 has student number 4,6,7 
+
+Group 2: students number 3,8,11
+
+Group 3:students number 2,5,12
+
+Group 4: students number 9,10,1
+
+
+
+
+
+
+##References
+
+Kaj Holmberg (2019) Formation of student groups with the help of optimization, Journal of the Operational Research Society, 70:9, 1538-1553, DOI:10.1080/01605682.2018.1500429
+
+
+
+
